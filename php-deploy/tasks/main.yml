@@ -1,0 +1,38 @@
+# Deployment role for Laravel apps.
+# License: MIT
+---
+- name: Create deployment directory.
+  include: directory.yml
+  when: not remote
+
+- name: create remote directory
+  include: remote_directory.yml
+  when: remote
+
+- name: Deploy the code.
+  include: deploy.yml
+  when: not remote
+
+- name: Composer install
+  include: composer.yml
+  when: deployed|success and not remote
+
+- name: synchronize
+  include: synchronize.yml
+  when: composer_install_complete|success and remote
+
+- name: symlinks
+  include: symlinks.yml
+  when: synccode|success and remote
+
+- name: smoketest
+  include: smoketest.yml
+  when: current_symlink|success and remote
+
+- name: Run cleanup of old releases.
+  shell: ls -dr /data/{{ env }}/{{ pname }}/releases/* | tail -n +{{ laravel_releases|int + 1 }} | xargs rm -fr
+  when: not remote
+
+- name: Run cleanup of old releases.
+  shell: ls -dr /var/www/{{ pname }}/releases/* | tail -n +{{ laravel_releases|int + 1 }} | xargs rm -fr
+  when: remote

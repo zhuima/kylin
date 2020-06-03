@@ -1,0 +1,12 @@
+# Deployment role for Laravel apps.
+# License: MIT
+# 
+# Create Directory 
+---
+
+
+- name: Create the release directory for local machich
+  file: state=directory path=/data/{{ env }}/{{ pname }}/releases
+
+- name: Create the current time directory for local machich
+  file: state=directory path=/data/{{ env }}/{{ pname }}/releases/{{ release_version.stdout }}

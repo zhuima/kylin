@@ -1,0 +1,21 @@
+# Deployment role for Laravel apps.
+# License: MIT
+#
+# Smoketest
+---
+- name: verify | check smoketest status
+  uri: "url={{ smoketest_url }}"
+  register: curl_result
+  until: curl_result.status == 200
+  retries: 3
+  delay: 5
+  changed_when: false
+  check_mode: no
+  ignore_errors: True
+  when: remote
+
+- name: "verify {{ curl_result.url }} status"
+  debug: msg="verify {{ curl_result.url }} status"
+
+- fail: msg="verify {{ curl_result.url }} failed!"
+  when: curl_result|failed

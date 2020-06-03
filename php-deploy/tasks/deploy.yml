@@ -1,0 +1,16 @@
+# Deployment role for Laravel apps.
+# License: MIT
+# 
+# Git Clone
+---
+- name: Git deploy.
+  git: repo={{ git_repo }} dest=/data/{{ env }}/{{ pname }}/releases/{{ release_version.stdout }} accept_hostkey=true version={{ branch }} recursive=yes force=yes
+  ignore_errors: true
+  register: deployed
+  
+- name: Cleanup on git pull failure for local.
+  file: path=/data/{{ env }}/{{ pname }}/releases/{{ release_version.stdout }} state=absent
+  when: deployed|failed
+
+- fail: msg="Code could not be git pull!"
+  when: deployed|failed

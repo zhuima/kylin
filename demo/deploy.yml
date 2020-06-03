@@ -1,0 +1,27 @@
+# License: MIT
+# Author: zhuima
+# deploy palybook
+---
+- hosts: local
+  gather_facts: True
+  pre_tasks:
+    - name: Get release version.
+      shell: date +%Y%m%d%H%M%S
+      register: current_time
+
+    - name: new release with current date time
+      set_fact: release_version={{ current_time }}
+
+    - name: echo
+      debug: msg={{ release_version }}
+  roles:
+    - { name: php-laravel-hello-world,  remote: false }
+
+- hosts: hlists
+  gather_facts: True
+  pre_tasks:
+    - name: new release with current date time
+      set_fact: release_version={{ hostvars['localhost']['release_version'] }}
+
+  roles:
+    - { name: php-laravel-hello-world,  remote: true }

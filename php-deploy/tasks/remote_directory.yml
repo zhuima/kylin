@@ -1,0 +1,13 @@
+# Deployment role for Laravel apps.
+# License: MIT
+# 
+# Create Directory 
+---
+- name: Create the release directory for remote machich
+  file: state=directory path=/var/blob/{{ pname }}/releases
+
+- name: Create the shared directory for remote machich
+  file: state=directory path=/var/blob/{{ pname }}/shared
+
+- name: Create the storage directory for remote machich
+  file: state=directory path=/var/blob/{{ pname }}/shared/storage

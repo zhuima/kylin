@@ -1,0 +1,19 @@
+# Deployment role for Laravel apps.
+# License: MIT
+# 
+# composer options --no-dev --optimize-autoloader --no-interaction, 为了减少时间，不安装dev的包
+---
+- name: Run composer install using global version.
+  shell: "composer config repo.packagist composer https://packagist.phpcomposer.com &&  composer install"
+  args:
+    chdir: "/data/{{ env }}/{{ pname }}/releases/{{ release_version.stdout }}"
+  register: composer_install_complete
+  ignore_errors: true
+
+- name: Cleanup on Composer failure for local
+  file: path=/data/{{ env }}/{{ pname }}/releases/{{ release_version.stdout }} state=absent
+  when: composer_install_complete|failed
+
+
+- fail: msg="Composer install failed!"
+  when: composer_install_complete|failed

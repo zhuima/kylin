@@ -1,0 +1,58 @@
+# Deployment role for Laravel apps
+# License: MIT
+#
+# symlink directory
+# 
+---
+- name: Check if the storage directory exists
+  stat: path=/var/blob/{{ pname }}/releases/{{ release_version.stdout }}/storage
+  register: storage_path
+  ignore_errors: true
+  
+- name: Cleanup on storage_path steps failure.
+  file: path=/var/www/{{ pname }}/releases/{{ release_version.stdout }} state=absent
+  when:  storage_path|failed
+
+- fail: Storage path is not exists
+  when: storage_path|failed
+
+- name: Delete storage directory
+  file: path=/var/blob/{{ pname }}/releases/{{ release_version.stdout }}/storage state=absent
+  when: storage_path|success and storage_path.stat.exists
+  register: storage_directory_delete
+  ignore_errors: true
+
+- name: Cleanup on storage_directory_delete steps failure.
+  file: path=/var/www/{{ pname }}/releases/{{ release_version.stdout }} state=absent
+  when:  storage_path|failed
+
+- fail: Storage directory delete failed
+  when: storage_directory_delete|failed
+
+- name: Create storage symlink
+  file: state=link src=../../shared/storage path=/var/blob/{{ pname }}/releases/{{ release_version.stdout }}/storage
+  when: storage_directory_delete|success or storage_directory_delete|skipped
+  register: storage_symlink
+  ignore_errors: true
+
+
+- name: Cleanup on storage_symlink steps failure.
+  file: path=/var/www/{{ pname }}/releases/{{ release_version.stdout }} state=absent
+  when:  storage_symlink|failed
+
+- fail: msg="Could not create storage link steps!"
+  when: storage_symlink|failed
+
+- name: Create symlink to newest release.
+  file: state=link src=./releases/{{ release_version.stdout }} path=/var/blob/{{ pname }}/current
+  register: current_symlink
+  ignore_errors: true
+  when: storage_symlink|success
+
+- name: Cleanup on current_symlink steps failure.
+  file: path=/var/www/{{ pname }}/releases/{{ release_version.stdout }} state=absent
+  when:  current_symlink|failed
+
+
+- fail: msg="Could not create current link steps!"
+  when: current_symlink|failed
